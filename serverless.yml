@@ -1,0 +1,36 @@
+# Happy Coding!
+
+service: attendance
+frameworkVersion: "2"
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  # ssm: ${ssm:/aws/reference/secretsmanager/\
+  #   ${opt:stage, self:provider.stage}/hrone-clockify/envs~true}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  stage: ${opt:stage, 'dev'}
+  region: us-west-1
+  apiGateway: { shouldStartNameWithService: true }
+
+  environment:
+    STAGE: ${opt:stage, 'dev'}
+
+functions:
+  hello:
+    name: hello-${opt:stage, 'dev'}
+    handler: handler/handler.hello
+    # environment: ${self.custom.ssm.hello, \ file(./config/${self:custom.stage}.env.json):hello}
+    events:
+      - http:
+          path: /hello
+          method: get
+          cors: true
+          # authorizer: authorize
+  fetchClockyfyAndUpdateHrOne:
+    handler: handler/fetch-clockify.fetch
+    events:
+          - schedule: rate(1 minute)          
